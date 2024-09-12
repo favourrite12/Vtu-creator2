@@ -1,131 +1,53 @@
- <?php include '../../include/ini_set.php';?>
- <?php include '../include/checklogin.php';?>
- <?php include '../../include/data_config.php';?>
- <?php include '../../include/filter.php';?>
- <?php include '../../include/webconfig.php';?>
- <?php include '../include/header.php';?>
- <?php include '../../include/pagination.php'; $page = new pagination($conn);?>
-
+<?php include "../include/ini_set.php" ;?>
 <?php 
-include '../include/admininfo.php';
-$adminInfo = adminInfo($loginAdmin,$conn);
-//print_r($adminInfo);
- checkAccess($adminInfo["transaction"]);  
+$sentOption = json_decode($_REQUEST["option"],true);
+$header = json_decode($_REQUEST["header"],true);
+$data = json_decode($_REQUEST["value"],true);
 ?>
-
- 
-
-<?php
-$sql = "SELECT id, display_name FROM service ";
- 
-$result = $conn->query($sql);
-
-	if ($result->num_rows > 0) {
-		// output data of each row
-	    while($row = mysqli_fetch_assoc($result)) {
-	      	$serviceValue[$row['id']]=$row['display_name'];		
-		}
-	  }else{
-		$serviceValue["notFound"] = true;
-	  }
-	//print_r($serviceValue);
-?>
-
-<title>
-<?php echo $LANG['transaction_history']; ?>
-</title>
-   
-  <section id="content">
-        
-        
-          <div class="container">
-            <div class="section">
-              
-			  <h4><?php echo $LANG["transactions"]; ?> </h4>
-<?php echo $LANG['the_below_table_contains_payment_history_of_all_transactions']; ?>
-
-			  
-			  
-			  
-              <div class="divider"></div>
-             
-                  <!-- Form with placeholder -->
-                  <div class="row">
-                    <div class="card-panel hoverable">
-<?php
- $i=1;
-$currentPage = xcape($conn, $_GET['page']);
-$totalQuery = $conn->query("SELECT id FROM recharge")->num_rows;
-$page->searchForm($action);
-$pageData = $page->getData($currentPage,$totalQuery);
-$start = $pageData["start"];
-$stop = $pageData["stop"];
-
-$sql = "SELECT id,service_id,amount,status,payment_method FROM recharge LIMIT $start,$stop";
-$result = mysqli_query($conn, $sql);
-
-if (mysqli_num_rows($result) > 0) { ?>
-<div class="container pl-sm-5">
-
-<div class="col s12">
-
-
-
-
-<table class="bordered ">
-<tr>
-    <th class="hide-on-med-and-down">#</th>
-        <th class="hide-on-med-and-down" ><?php echo $LANG['transaction_id']; ?></th>
-	<th><?php echo $LANG["service"]; ?></th>
-	<th><?php echo $LANG["amount"]; ?></th>
-	<th><?php echo $LANG["status"]; ?></th>
-        <th class="hide-on-med-and-down" colspan="2"><?php echo $LANG["payment_method"]; ?></th>
-</tr>
 <?php 
-
-    while($row = mysqli_fetch_assoc($result)) {
-    $sn++;
-    
-    $method = $LANG[strtolower($row["payment_method"])];
-      if(empty($method)){
-          $method = $LANG["none"];
-    }
-	
-    echo "<tr>";
-    echo '<td class="hide-on-med-and-down" >'.$i++.'</td>';
-    echo '<td class="hide-on-med-and-down">'.$row["id"].'</td>';
-    echo '<td>'.$serviceValue[$row["service_id"]].'</td>';
-    echo '<td>'.$row["amount"].'</td>';
-    echo '<td>'.$LANG[$row["status"]].'</td>';
-    echo '<td class="hide-on-med-and-down"><center>'.$method.'</center></td>';
-    echo '<td><center><a target="_blank" href="view.php?id='.$row["id"].'"><i class="material-icons">visibility<i> </a> </center></td>';
-    echo "</tr>";
-	
-} 
-}else {
-    echo ($LANG['no_transaction_found']);
-    openAlert($LANG['no_transaction_found']);
+$option = array(
+    'CURLOPT_RETURNTRANSFER' => true,
+    'CURLOPT_POST' => true,
+    'CURLOPT_ENCODING' => "",
+    'CURLOPT_HTTPHEADER' => "",
+    'CURLOPT_FOLLOWLOCATION'=> true,
+    'CURLOPT_MAXREDIRS' => 10,   
+    'CURLOPT_POSTREDIR' => 3,   
+    'CURLOPT_TIMEOUT' => 30,
+    'CURLOPT_HTTP_VERSION' => 'CURL_HTTP_VERSION_1_1',
+    'CURLOPT_CUSTOMREQUEST' => "POST",
+);
+if(!empty($header)){      
+$header = [implode(',',$header)];
 }
 ?>
-</table>
-</div>
 
-    <?php $page->getPage($currentPage, $totalQuery)?>
+<?php
+foreach ($sentOption as $key => $value) {
+    if(isset($sentOption[$key])){
+      $option[$key]=$value;  
+    }
+}
+?>
+<?php 
 
-</div>
+$curl  = curl_init();
 
+curl_setopt($curl, CURLOPT_URL, $_REQUEST["url"]);
+curl_setopt($curl, CURLOPT_RETURNTRANSFER, $option["CURLOPT_RETURNTRANSFER"]);
+curl_setopt($curl, CURLOPT_POST, $option["CURLOPT_POST"]);
+curl_setopt($curl, CURLOPT_ENCODING, $option["CURLOPT_ENCODING"]);
+curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+curl_setopt($curl, CURLOPT_REFERER, $option["CURLOPT_REFERER"]);
+curl_setopt($curl, CURLOPT_HTTPHEADER, array($headers));
+curl_setopt($curl, CURLOPT_FOLLOWLOCATION, $option["CURLOPT_FOLLOWLOCATION"]);
+curl_setopt($curl, CURLOPT_MAXREDIRS, $option["CURLOPT_MAXREDIRS"]);   
+curl_setopt($curl, CURLOPT_POSTREDIR, $option["CURLOPT_POSTREDIR"]);   
+curl_setopt($curl, CURLOPT_TIMEOUT, $option["CURLOPT_TIMEOUT"]);
+curl_setopt($curl, CURLOPT_HTTP_VERSION, $option["CURLOPT_HTTP_VERSION"]);
+curl_setopt($curl, CURLOPT_CUSTOMREQUEST, $option["CURLOPT_CUSTOMREQUEST"]);
 
-                     </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              </div>
-        </section>
+echo curl_exec($curl); 
+curl_close($curl);
 
-
-
-
-
-<?php include '../include/footer.php';?>
-
+?>

@@ -1,122 +1,82 @@
-<?php include '../../include/ini_set.php';?>
- <?php include '../include/checklogin.php';?>
+  <?php include '../include/checklogin.php';?>
+<?php include '../include/header.php';?>
  <?php include '../../include/data_config.php';?>
  <?php include '../../include/filter.php';?>
- <?php include '../../include/webconfig.php';?>
- <?php include '../include/header.php';?>
-<?php include '../../include/pagination.php'; $page = new pagination($conn);?>
+ <?php include '../../include/pagination.php'; $page = new pagination($conn);?>
 
-
-<?php 
+ 
+ 
+ 
+ <?php 
 include '../include/admininfo.php';
 $adminInfo = adminInfo($loginAdmin,$conn);
 //print_r($adminInfo);
-checkAccess($adminInfo["transaction"]);
-     
+ checkAccess($adminInfo["users"]);
 ?>
-
-
-
-<?php $q = xcape($conn,$_GET["q"]);?>
+ 
  
 
-<?php
-$sql = "SELECT id, display_name FROM service ";
- 
-$result = $conn->query($sql);
-
-	if ($result->num_rows > 0) {
-		// output data of each row
-	    while($row = mysqli_fetch_assoc($result)) {
-	      	$serviceValue[$row['id']]=$row['display_name'];		
-		}
-	  }else{
-		$serviceValue["notFound"] = true;
-	  }
-	//print_r($serviceValue);
-?>
-
-<title>
-<?php echo $LANG['transaction_history']; ?>
-</title>
-   
+		
+		
+		 
+		 
+ <title><?php echo $LANG["registered_user"]; ?></title>
   <section id="content">
         
         
           <div class="container">
             <div class="section">
-              
-			  <h4><?php echo $LANG["transactions"]; ?> </h4>
-
-			  
-			  
-			  
+              <p class="caption"> <?php echo $LANG["registered_user"]; ?></p>
               <div class="divider"></div>
              
                   <!-- Form with placeholder -->
-                  <div class="row">
-                    <div class="card-panel hoverable">
-<?php
- $i=1;
+                  <div class="col s12 m12 l6">
+                    <div class="card-panel">
+		
+<section class="container">
+			   
+	<div class="row flex-items-sm-center">
+	<table class="table">
+ <?php
+
+ $q = xcape($conn, $_GET["q"]);
+ 
+ 
 $currentPage = xcape($conn, $_GET['page']);
-$totalQuery = $conn->query("SELECT id FROM recharge WHERE (id='$q' OR status ='$q' OR phone ='$q' OR amount ='$q' OR email ='$q' OR payment_method='$q')")->num_rows;
+$totalQuery = $conn->query("SELECT id FROM users WHERE id='$q' OR name='$q' OR credit='$q' OR email='$q' OR phone='$q' OR api='$q' OR country='$q' OR user_name='$q' ")->num_rows;
 $page->searchForm($action,$q);
 $pageData = $page->getData($currentPage,$totalQuery);
 $start = $pageData["start"];
 $stop = $pageData["stop"];
 
-$sql = "SELECT service_id,id,payment_method,amount,status FROM recharge WHERE (id='$q' OR status ='$q' OR phone ='$q' OR amount ='$q' OR email ='$q' OR payment_method='$q') LIMIT $start,$stop";
-$result = mysqli_query($conn, $sql);
-
-if (mysqli_num_rows($result) > 0) { ?>
-<div class="container pl-sm-5">
-
-<div class="col s12">
-
-
-
-
-<table class="bordered ">
-<tr>
-    <th class="hide-on-med-and-down">#</th>
-        <th class="hide-on-med-and-down" ><?php echo $LANG['transaction_id']; ?></th>
-	<th><?php echo $LANG["service"]; ?></th>
-	<th><?php echo $LANG["amount"]; ?></th>
-	<th><?php echo $LANG["status"]; ?></th>
-        <th class="hide-on-med-and-down" colspan="2"><?php echo $LANG["payment_method"]; ?></th>
-</tr>
-<?php 
-
-    while($row = mysqli_fetch_assoc($result)) {
-    $sn++;
-    
-    $method = $LANG[strtolower($row["payment_method"])];
-      if(empty($method)){
-          $method = $LANG["none"];
-    }
-	
-    echo "<tr>";
-    echo '<td class="hide-on-med-and-down" >'.$i++.'</td>';
-    echo '<td class="hide-on-med-and-down">'.$row["id"].'</td>';
-    echo '<td>'.$serviceValue[$row["service_id"]].'</td>';
-    echo '<td>'.$row["amount"].'</td>';
-    echo '<td>'.$LANG[$row["status"]].'</td>';
-    echo '<td class="hide-on-med-and-down"><center>'.$method.'</center></td>';
-    echo '<td><center><a target="_blank" href="view.php?id='.$row["id"].'"><i class="material-icons">visibility<i> </a> </center></td>';
-    echo "</tr>";
-	
-} 
-}else {
-    echo $LANG['no_transaction_found'];
-   openAlert($LANG['no_transaction_found']);
-}
-?>
-</table>
-</div>
-
-    <?php $page->getPage($currentPage, $totalQuery,$q)?>
+ 
+		  $sql = "SELECT id, name FROM users WHERE id='$q' OR name='$q' OR credit='$q' OR email='$q' OR phone='$q' OR api='$q' OR country='$q' OR user_name='$q'  ORDER BY name LIMIT $start,$stop";
+		  $result = $conn->query($sql);
+			if ($result->num_rows > 0) {
+			   // output data of each row
+				while($row = $result->fetch_assoc()) {
+				   $name =   $row["name"];
+				   $id =   $row["id"];
+					echo "<tr>
+					      <td>$sn</td>
+					      <td>$name</td>
+					      <td><a class=\" py-0\" href=\"login.php?id=$id\">{$LANG['login']}</a></td>
+					      <td><a class=\" py-0\" href=\"../editbalance.php?id=$id\">{$LANG['edit_balance']}</a></td>
+					      <td><a class=\" py-0\" href=\"../blockuser.php?id=$id\">{$LANG['block_unblock']}</a></td>
+					      <td><a class=\" py-0\" href=\"view.php?id=$id\">{$LANG['view']}</a></td>
+                                              </tr>";
+					 
+				}
+			}else{
+                            openAlert($LANG["no_record_found"]);
+			}
+                        $conn->error;
+		?>
+	</table>	 
 
 </div>
+     <?php $page->getPage($currentPage, $totalQuery,$q)?>
+</section>
 
 
                      </div>
@@ -126,6 +86,12 @@ if (mysqli_num_rows($result) > 0) { ?>
               </div>
         </section>
 
-</div>
- <?php include '../include/footer.php';?>
 
+
+
+
+<?php include '../include/right-nav.php';?>
+<?php include '../include/footer.php';?>
+		
+		
+		

@@ -13,7 +13,12 @@ $adminInfo = adminInfo($loginAdmin,$conn);
 //print_r($adminInfo);
  checkAccess($adminInfo["users"]);
 ?>
- 		 
+ 
+ 
+
+		
+		
+		 
 		 
  <title><?php echo $LANG["registered_user"]; ?></title>
   <section id="content">
@@ -21,7 +26,7 @@ $adminInfo = adminInfo($loginAdmin,$conn);
         
           <div class="container">
             <div class="section">
-              <p class="caption"> <?php echo $LANG["registered_user"]; ?> - <?php echo $LANG["email"]; ?></p>
+              <p class="caption"> <?php echo $LANG["registered_user"]; ?> - <?php echo $LANG["phone"]; ?></p>
               <div class="divider"></div>
              
                   <!-- Form with placeholder -->
@@ -42,14 +47,14 @@ $start = $pageData["start"];
 $stop = $pageData["stop"];
 
  
-		  $sql = "SELECT email FROM users  LIMIT $start,$stop";
+		  $sql = "SELECT phone FROM users ORDER BY name LIMIT $start,$stop";
 		  $result = $conn->query($sql);
 			if ($result->num_rows > 0) {
                             echo  '<textarea class="materialize-textarea lg-text-input" >';
 			   // output data of each row
 				while($row = $result->fetch_assoc()) {
-				   $email =   $row["email"];
-					echo "$email,";
+				   $phone =   $row["phone"];
+					echo "$phone,";
 					 
 				}
                             echo   '</textarea>';
