@@ -31,7 +31,7 @@ $result = $conn->query($sql);
 ?>
 
 <title>
-<?php echo $LANG['api_transactions']; ?> - <?php echo $LANG['transaction_history']; ?>
+<?php echo $LANG['api_transactions']; ?> - <?php echo $LANG['pending_transactions']; ?>
 </title>
    
   <section id="content">
@@ -40,8 +40,8 @@ $result = $conn->query($sql);
           <div class="container">
             <div class="section">
               
-			  <h4><?php echo $LANG['api_transactions']; ?>  </h4>
-<?php echo $LANG['the_below_table_contains_payment_history_of_all_transactions']; ?>
+			  <h4><?php echo $LANG['api_transactions']; ?> - <?php echo $LANG["pending_transactions"]; ?> </h4>
+<?php echo $LANG['the_below_table_contains_payment_history_of_pending_transactions']; ?>
 
 			  
 			  
@@ -54,16 +54,16 @@ $result = $conn->query($sql);
 <?php
  $i=1;
 $currentPage = xcape($conn, $_GET['page']);
-$totalQuery = $conn->query("SELECT id FROM api_transaction")->num_rows;
+$totalQuery = $conn->query("SELECT id FROM api_transaction WHERE status='pending'")->num_rows;
 $page->searchForm($action);
 $pageData = $page->getData($currentPage,$totalQuery);
 $start = $pageData["start"];
 $stop = $pageData["stop"];
 
-$sql = "SELECT id,service_id,amount,status FROM api_transaction LIMIT $start,$stop";
-$result = $conn->query($sql);
-$conn->error;
-if ($result->num_rows > 0) { ?>
+$sql = "SELECT amount,id,status,service_id FROM api_transaction  WHERE status='initiated' ORDER BY reg_date DESC LIMIT $start,$stop";
+$result = mysqli_query($conn, $sql);
+
+if (mysqli_num_rows($result) > 0) { ?>
 <div class="container pl-sm-5">
 
 <div class="col s12">
@@ -77,22 +77,19 @@ if ($result->num_rows > 0) { ?>
         <th class="hide-on-med-and-down" ><?php echo $LANG['transaction_id']; ?></th>
 	<th><?php echo $LANG["service"]; ?></th>
 	<th><?php echo $LANG["amount"]; ?></th>
-	<th><?php echo $LANG["status"]; ?></th>
         
 </tr>
 <?php 
 
     while($row = mysqli_fetch_assoc($result)) {
     $sn++;
-    
    
-	
+   
     echo "<tr>";
     echo '<td class="hide-on-med-and-down" >'.$i++.'</td>';
     echo '<td class="hide-on-med-and-down">'.$row["id"].'</td>';
     echo '<td>'.$serviceValue[$row["service_id"]].'</td>';
     echo '<td>'.$row["amount"].'</td>';
-    echo '<td>'.$LANG[$row["status"]].'</td>';
    
     echo '<td><center><a target="_blank" href="view.php?id='.$row["id"].'"><i class="material-icons">visibility<i> </a> </center></td>';
     echo "</tr>";

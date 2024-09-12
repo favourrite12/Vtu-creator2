@@ -3,15 +3,20 @@
  <?php include '../../include/filter.php';?>
  <?php include '../../include/webconfig.php';?>
  <?php include '../include/header.php';?>
- <?php include '../../include/pagination.php'; $page = new pagination($conn);?>
+<?php include '../../include/pagination.php'; $page = new pagination($conn);?>
+
 
 <?php 
 include '../include/admininfo.php';
 $adminInfo = adminInfo($loginAdmin,$conn);
 //print_r($adminInfo);
- checkAccess($adminInfo["transaction"]);  
+checkAccess($adminInfo["transaction"]);
+     
 ?>
 
+
+
+<?php $q = xcape($conn,$_GET["q"]);?>
  
 
 <?php
@@ -31,7 +36,7 @@ $result = $conn->query($sql);
 ?>
 
 <title>
-<?php echo $LANG['api_transactions']; ?> - <?php echo $LANG['transaction_history']; ?>
+<?php echo $LANG['transaction_history']; ?>
 </title>
    
   <section id="content">
@@ -40,8 +45,7 @@ $result = $conn->query($sql);
           <div class="container">
             <div class="section">
               
-			  <h4><?php echo $LANG['api_transactions']; ?>  </h4>
-<?php echo $LANG['the_below_table_contains_payment_history_of_all_transactions']; ?>
+			  <h4><?php echo $LANG['api_transactions']; ?> - <?php echo $LANG["search"]; ?> </h4>
 
 			  
 			  
@@ -54,16 +58,16 @@ $result = $conn->query($sql);
 <?php
  $i=1;
 $currentPage = xcape($conn, $_GET['page']);
-$totalQuery = $conn->query("SELECT id FROM api_transaction")->num_rows;
-$page->searchForm($action);
+$totalQuery = $conn->query("SELECT id FROM api_transaction WHERE (id='$q' OR status ='$q' OR phone ='$q' OR amount ='$q' OR email ='$q')")->num_rows;
+$page->searchForm($action,$q);
 $pageData = $page->getData($currentPage,$totalQuery);
 $start = $pageData["start"];
 $stop = $pageData["stop"];
 
-$sql = "SELECT id,service_id,amount,status FROM api_transaction LIMIT $start,$stop";
-$result = $conn->query($sql);
-$conn->error;
-if ($result->num_rows > 0) { ?>
+$sql = "SELECT  service_id,id,amount,status FROM api_transaction WHERE (id='$q' OR status ='$q' OR phone ='$q' OR amount ='$q' OR email ='$q') LIMIT $start,$stop";
+$result = mysqli_query($conn, $sql);
+
+if (mysqli_num_rows($result) > 0) { ?>
 <div class="container pl-sm-5">
 
 <div class="col s12">
@@ -78,13 +82,12 @@ if ($result->num_rows > 0) { ?>
 	<th><?php echo $LANG["service"]; ?></th>
 	<th><?php echo $LANG["amount"]; ?></th>
 	<th><?php echo $LANG["status"]; ?></th>
-        
+        <th class="hide-on-med-and-down" colspan="2"><?php echo $LANG["payment_method"]; ?></th>
 </tr>
 <?php 
 
     while($row = mysqli_fetch_assoc($result)) {
     $sn++;
-    
    
 	
     echo "<tr>";
@@ -93,20 +96,19 @@ if ($result->num_rows > 0) { ?>
     echo '<td>'.$serviceValue[$row["service_id"]].'</td>';
     echo '<td>'.$row["amount"].'</td>';
     echo '<td>'.$LANG[$row["status"]].'</td>';
-   
     echo '<td><center><a target="_blank" href="view.php?id='.$row["id"].'"><i class="material-icons">visibility<i> </a> </center></td>';
     echo "</tr>";
 	
 } 
 }else {
-    echo ($LANG['no_transaction_found']);
-    openAlert($LANG['no_transaction_found']);
+    echo $LANG['no_transaction_found'];
+   openAlert($LANG['no_transaction_found']);
 }
 ?>
 </table>
 </div>
 
-    <?php $page->getPage($currentPage, $totalQuery)?>
+    <?php $page->getPage($currentPage, $totalQuery,$q)?>
 
 </div>
 
@@ -118,9 +120,6 @@ if ($result->num_rows > 0) { ?>
               </div>
         </section>
 
-
-
-
-<?php include '../include/right-nav.php';?>
-<?php include '../include/footer.php';?>
+</div>
+ <?php include '../include/footer.php';?>
 
