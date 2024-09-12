@@ -10,7 +10,7 @@
 include '../include/admininfo.php';
 $adminInfo = adminInfo($loginAdmin,$conn);
 //print_r($adminInfo);
-checkAccess($adminInfo["transaction"]);
+checkAccess($adminInfo["deposit"]);
      
 ?>
 
@@ -19,24 +19,10 @@ checkAccess($adminInfo["transaction"]);
 <?php $q = xcape($conn,$_GET["q"]);?>
  
 
-<?php
-$sql = "SELECT id, display_name FROM service ";
- 
-$result = $conn->query($sql);
 
-	if ($result->num_rows > 0) {
-		// output data of each row
-	    while($row = mysqli_fetch_assoc($result)) {
-	      	$serviceValue[$row['id']]=$row['display_name'];		
-		}
-	  }else{
-		$serviceValue["notFound"] = true;
-	  }
-	//print_r($serviceValue);
-?>
 
 <title>
-<?php echo $LANG['transaction_history']; ?>
+<?php echo $LANG['user_funding_by_admin']; ?>
 </title>
    
   <section id="content">
@@ -45,7 +31,7 @@ $result = $conn->query($sql);
           <div class="container">
             <div class="section">
               
-			  <h4><?php echo $LANG['api_transactions']; ?> - <?php echo $LANG["search"]; ?> </h4>
+			  <h5><?php echo $LANG["user_funding_by_admin"]; ?> </h5>
 
 			  
 			  
@@ -58,13 +44,13 @@ $result = $conn->query($sql);
 <?php
  $i=1;
 $currentPage = xcape($conn, $_GET['page']);
-$totalQuery = $conn->query("SELECT id FROM api_transaction WHERE (id='$q' OR status ='$q' OR phone ='$q' OR amount ='$q' OR email ='$q')")->num_rows;
+$totalQuery = $conn->query("SELECT id FROM deposit WHERE (id='$q' OR status ='$q' OR amount ='$q')")->num_rows;
 $page->searchForm($action,$q);
 $pageData = $page->getData($currentPage,$totalQuery);
 $start = $pageData["start"];
 $stop = $pageData["stop"];
 
-$sql = "SELECT  service_id,id,amount,status FROM api_transaction WHERE (id='$q' OR status ='$q' OR phone ='$q' OR amount ='$q' OR email ='$q') LIMIT $start,$stop";
+$sql = "SELECT id,amount,status,reg_date FROM deposit WHERE (id='$q' OR status ='$q' OR amount ='$q') LIMIT $start,$stop";
 $result = mysqli_query($conn, $sql);
 
 if (mysqli_num_rows($result) > 0) { ?>
@@ -79,23 +65,27 @@ if (mysqli_num_rows($result) > 0) { ?>
 <tr>
     <th class="hide-on-med-and-down">#</th>
         <th class="hide-on-med-and-down" ><?php echo $LANG['transaction_id']; ?></th>
-	<th><?php echo $LANG["service"]; ?></th>
 	<th><?php echo $LANG["amount"]; ?></th>
 	<th><?php echo $LANG["status"]; ?></th>
-        <th class="hide-on-med-and-down" colspan="2"><?php echo $LANG["payment_method"]; ?></th>
+        <th class="hide-on-med-and-down"><?php echo $LANG["date"]; ?></th>
+        <th><?php echo $LANG["action"]; ?></th>
 </tr>
 <?php 
 
     while($row = mysqli_fetch_assoc($result)) {
     $sn++;
-   
+    
+    $method = $LANG[strtolower($row["payment_method"])];
+      if(empty($method)){
+          $method = $LANG["none"];
+    }
 	
     echo "<tr>";
     echo '<td class="hide-on-med-and-down" >'.$i++.'</td>';
     echo '<td class="hide-on-med-and-down">'.$row["id"].'</td>';
-    echo '<td>'.$serviceValue[$row["service_id"]].'</td>';
     echo '<td>'.$row["amount"].'</td>';
     echo '<td>'.$LANG[$row["status"]].'</td>';
+    echo '<td class="hide-on-med-and-down"><center>'.date("d-m-Y", $row["reg_date"]).'</center></td>';
     echo '<td><center><a target="_blank" href="view.php?id='.$row["id"].'"><i class="material-icons">visibility<i> </a> </center></td>';
     echo "</tr>";
 	

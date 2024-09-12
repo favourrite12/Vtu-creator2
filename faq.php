@@ -1,32 +1,117 @@
-<?php include "include/header.php"?>
- <?php include 'include/data_config.php';?>
-<?php include 'include/webconfig.php';?>
-<title><?php echo $LANG["about_us"];?> | <?php echo $webConfig["webName"];?></title>
-<div class="">
-    
-    <div class="section ">
-              <p class="caption"><?php echo $LANG["faq"]; ?> - <?php echo $webConfig["webName"]; ?></p>
-              <div class="divider"></div>
- <section class="container">
-        
-        
+          <?php include '../include/checklogin.php';?>
+		<?php include '../include/header.php';?>
+		 <?php include '../../include/data_config.php';?>
+		 <?php include '../../include/filter.php';?>
+		 <?php include '../../include/webconfig.php';?>
+		 <?php 
+		include '../include/admininfo.php';
+		$adminInfo = adminInfo($loginAdmin,$conn);
+		//print_r($adminInfo);
+		 checkAccess($adminInfo["web_config"]);
+			 
+		?>
+		  
+	
+
+		 
+ <?php
+
+
+   $id = xcape($conn,$_GET["id"]);
+   $sql = "SELECT * FROM web_config WHERE array_key = 'faq'";
+  $result = $conn->query($sql);
+if ($result->num_rows > 0) {
+   // output data of each row
+    while($row = $result->fetch_assoc()) {
+	   $name =   $row["array_key"];
+	   $content =   $row["value"];  
+	   $title =   $row["display_name"];  
+	   $description =   $row["description"];  
+	}
+}
+?>
+		
+         <script src="../../create_article/ckeditor.js"></script>
+
+	 <title><?php echo $LANG["$title"]; ?> | <?php echo $LANG["configuration"]; ?> </title>
  
-           
+        
+        
+          <div class="container">
+            <div class="section">
+              <p class="caption"><?php echo $LANG["configuration"]; ?> | <?php echo $LANG["$title"]; ?></p>
+              <div class="divider"></div>
              
                   <!-- Form with placeholder -->
-                  <div class="col s12">
-                    <div class="card-panel hoverable">  
-    
-    
+                  <div class="col s12 m12 l6">
+                    <div class="card-panel hoverable">
+					
+<section class="container">
+			   
+	<div class="row flex-items-sm-center p-3">
+	<div class="col s12" id="output"><div  class="float-left"></i><small><?php echo $LANG["copy_from_word_editor_html"]; ?></small></i></div> <div  class="right"></i><small>Auto Saving is enable, content save automatically</small></i></div></div>
+		  <div class="col s12 form-group">
+			<h4><?php echo $LANG[$title]?> <a class="tooltipped" data-position="top" data-tooltip="<?php echo $LANG[$description]?>"><i class="material-icons">help</i></a> </h4>
+			</div>
+			
+			 <input type="hidden" name="name" id="name" value="<?php echo $name ;?>" />
+			 <div class="col s12 form-group">
+				<textarea onchange="autoSaveConfiguration()" name="content" id="editor" rows="100" cols="100" required>  <?php echo htmlspecialchars_decode($content) ;?> </textarea>
+				 </div>
+				 
+				
+				
+				
+				
+				
+				
+			<div class="col s12 form-group">
+				<button  class="btn btn-primary right right"  onclick="autoSaveConfiguration(true);" >Save </button>
+			  </div>
+			
+				
+				
+				 <div class="col-sm-2 form-group">
+			</div>
 
-<?php echo htmlspecialchars_decode($webConfig["faq"]);?>
-                        
-                    </div>
-                    </div>
-                    </div>
- </section>
-</div>
-</div>
+		
+	
+
 
 </div>
-<?php include "include/footer.php"?>
+
+
+                     </div>
+                    </div>
+                  </div>
+                </div>
+                </div>
+              </div>
+        </section>
+
+
+
+
+
+<?php include '../include/right-nav.php';?>
+<?php include '../include/footer.php';?>
+
+<script>
+
+CKEDITOR.replace( 'content', {
+       on: {
+        change: function( evt ) {
+           autoSave();
+        }
+    }
+} );
+
+</script>
+		
+		
+<script>
+$(document).ready(function(){
+  $('[data-toggle="tooltip"]').tooltip(); 
+});
+</script>		
+		
