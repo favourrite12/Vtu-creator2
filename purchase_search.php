@@ -1,24 +1,19 @@
-<?php include '../../include/ini_set.php';?>
  <?php include '../include/checklogin.php';?>
  <?php include '../../include/data_config.php';?>
  <?php include '../../include/filter.php';?>
  <?php include '../../include/webconfig.php';?>
  <?php include '../include/header.php';?>
-<?php include '../../include/pagination.php'; $page = new pagination($conn);?>
-
+ <?php include '../../include/pagination.php'; $page = new pagination($conn);?>
 
 <?php 
 include '../include/admininfo.php';
 $adminInfo = adminInfo($loginAdmin,$conn);
 //print_r($adminInfo);
-checkAccess($adminInfo["transaction"]);
-     
+ checkAccess($adminInfo["transaction"]);  
 ?>
 
+ <?php $q = xcape($conn,$_GET["q"]);?>
 
-
-<?php $q = xcape($conn,$_GET["q"]);?>
- 
 
 <?php
 $sql = "SELECT id, display_name FROM service ";
@@ -37,7 +32,7 @@ $result = $conn->query($sql);
 ?>
 
 <title>
-<?php echo $LANG['transaction_history']; ?>
+<?php echo $LANG['purchase']; ?>
 </title>
    
   <section id="content">
@@ -46,7 +41,8 @@ $result = $conn->query($sql);
           <div class="container">
             <div class="section">
               
-			  <h4><?php echo $LANG["transactions"]; ?> </h4>
+			  <h4><?php echo $LANG["purchase"]; ?> </h4>
+<?php echo $LANG['the_below_table_contains_payment_history_of_all_transactions_through_direct_online_payment']; ?>
 
 			  
 			  
@@ -59,13 +55,13 @@ $result = $conn->query($sql);
 <?php
  $i=1;
 $currentPage = xcape($conn, $_GET['page']);
-$totalQuery = $conn->query("SELECT id FROM recharge WHERE (id='$q' OR status ='$q' OR phone ='$q' OR amount ='$q' OR email ='$q' OR payment_method='$q')")->num_rows;
-$page->searchForm($action,$q);
+$totalQuery = $conn->query("SELECT id FROM guest_payment WHERE (id='$q' OR status ='$q' OR amount ='$q')")->num_rows;
+$page->searchForm("purchase_search.php",$q);
 $pageData = $page->getData($currentPage,$totalQuery);
 $start = $pageData["start"];
 $stop = $pageData["stop"];
 
-$sql = "SELECT service_id,id,payment_method,amount,status FROM recharge WHERE (id='$q' OR status ='$q' OR phone ='$q' OR amount ='$q' OR email ='$q' OR payment_method='$q') LIMIT $start,$stop";
+$sql = "SELECT *  FROM guest_payment WHERE (id='$q' OR status ='$q' OR amount ='$q') ORDER BY reg_date DESC LIMIT $start,$stop";
 $result = mysqli_query($conn, $sql);
 
 if (mysqli_num_rows($result) > 0) { ?>
@@ -78,37 +74,37 @@ if (mysqli_num_rows($result) > 0) { ?>
 
 <table class="bordered ">
 <tr>
-    <th class="hide-on-med-and-down">#</th>
-        <th class="hide-on-med-and-down" ><?php echo $LANG['transaction_id']; ?></th>
+    <th>#</th>
+        <th ><?php echo $LANG['transaction_id']; ?></th>
 	<th><?php echo $LANG["service"]; ?></th>
 	<th><?php echo $LANG["amount"]; ?></th>
-	<th><?php echo $LANG["status"]; ?></th>
-        <th class="hide-on-med-and-down" colspan="2"><?php echo $LANG["payment_method"]; ?></th>
+        <th><?php echo $LANG["status"]; ?></th>
+        <th><?php echo $LANG["date"]; ?></th>
+        <th><?php echo $LANG["gateway_response"]; ?></th>
 </tr>
 <?php 
 
     while($row = mysqli_fetch_assoc($result)) {
     $sn++;
-    
-    $method = $LANG[strtolower($row["payment_method"])];
-      if(empty($method)){
-          $method = $LANG["none"];
-    }
+     
+	$date = date("d-m-Y @ g:ia ",$row["reg_date"]);	
+	$serviceID  = $conn->query("SELECT service_id FROM recharge WHERE id='{$row["transaction_id"]}' ")->fetch_assoc()["service_id"];
 	
-    echo "<tr>";
-    echo '<td class="hide-on-med-and-down" >'.$i++.'</td>';
-    echo '<td class="hide-on-med-and-down">'.$row["id"].'</td>';
-    echo '<td>'.$serviceValue[$row["service_id"]].'</td>';
-    echo '<td>'.$row["amount"].'</td>';
-    echo '<td>'.$LANG[$row["status"]].'</td>';
-    echo '<td class="hide-on-med-and-down"><center>'.$method.'</center></td>';
-    echo '<td><center><a target="_blank" href="view.php?id='.$row["id"].'"><i class="material-icons">visibility<i> </a> </center></td>';
-    echo "</tr>";
+	$gatewayResponse= !empty($row["gateway_response"])?$row["gateway_response"]:$LANG["none"];
+	echo "<tr>";
+	echo '<td>'.$i++.'</td>';
+	echo '<td>'.$row["id"].'</td>';
+        echo '<td>'.$serviceValue[$serviceID].'</td>';
+	echo '<td>'.$row["amount"].'</td>';
+	echo '<td>'.$LANG[$row["status"]].'</td>';
+        echo '<td>'.$date.'</td>';
+	echo '<td><center><a data-position="left" data-tooltip="'.$gatewayResponse.'" class="tooltipped"  href="javaScript:void(0)"><i class="material-icons">visibility</i></a> </center></td>';
+	echo "</tr>";
 	
 } 
 }else {
-    echo $LANG['no_transaction_found'];
-   openAlert($LANG['no_transaction_found']);
+    echo ($LANG['no_transaction_found']);
+    openAlert($LANG['no_transaction_found']);
 }
 ?>
 </table>
@@ -126,6 +122,9 @@ if (mysqli_num_rows($result) > 0) { ?>
               </div>
         </section>
 
-</div>
- <?php include '../include/footer.php';?>
+
+
+
+<?php include '../include/right-nav.php';?>
+<?php include '../include/footer.php';?>
 

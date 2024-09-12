@@ -16,15 +16,13 @@
           <div class="container">
             <div class="section">
               
-                <p class="left"><?php echo $LANG["payout_request"]; ?> </p> 
-                <a href="payout_request.php" class="right bold"><?php echo $LANG["new_request"]?></a>
-                
-
+			  <h4><?php echo $LANG["transactions"]; ?> </h4>
+<?php echo $LANG['the_below_table_contains_payment_history_of_all_transactions']; ?>
 
 			  
 			  
 			  
-              <div class="divider clearfix"></div>
+              <div class="divider"></div>
              
                   <!-- Form with placeholder -->
                   <div class="row">
@@ -32,13 +30,13 @@
 <?php
  $i=1;
 $currentPage = xcape($conn, $_GET['page']);
-$totalQuery = $conn->query("SELECT id FROM payout_request WHERE  owner='$loginUser'")->num_rows;
+$totalQuery = $conn->query("SELECT id FROM payment WHERE  owner='$loginUser'")->num_rows;
 $page->searchForm($action);
 $pageData = $page->getData($currentPage,$totalQuery);
 $start = $pageData["start"];
 $stop = $pageData["stop"];
 //refresh
-$sql = "SELECT reg_date,settled,id,amount FROM payout_request WHERE user='$loginUser' LIMIT $start,$stop";
+$sql = "SELECT reg_date,settled,id,amount,status FROM payment WHERE owner='$loginUser' LIMIT $start,$stop";
 $result = mysqli_query($conn, $sql);
 
 if (mysqli_num_rows($result) > 0) { ?>
@@ -54,21 +52,27 @@ if (mysqli_num_rows($result) > 0) { ?>
     <th class="hide-on-med-and-down">#</th>
         <th class="hide-on-med-and-down" ><?php echo $LANG['transaction_id']; ?></th>
 	<th><?php echo $LANG["amount"]; ?></th>
-	<th><?php echo $LANG["settled"]; ?></th>
-        <th  colspan="2"><?php echo $LANG["date"]; ?></th>
+	<th><?php echo $LANG["status"]; ?></th>
+        <th class="hide-on-med-and-down" colspan="2"><?php echo $LANG["date"]; ?></th>
 </tr>
 <?php 
 
     while($row = mysqli_fetch_assoc($result)) {
     $sn++;
-   $settled = $row["settled"]==1?"yes":"no";
+    $link = "view.php?id=";
+    $icon = "visibility";
+    if($row["status"]=="pending"){
+      $link="method.php?wallet=";
+      $icon = "refresh";
+    }
     echo "<tr>";
     echo '<td class="hide-on-med-and-down" >'.$i++.'</td>';
     echo '<td class="hide-on-med-and-down">'.$row["id"].'</td>';
     echo '<td>'.$row["amount"].'</td>';
-    echo '<td>'.$LANG[$settled].'</td>';
-    echo '<td >'.date("d-m-Y",$row["reg_date"]).'</td>';
-     echo "</tr>";
+    echo '<td>'.$LANG[$row["status"]].'</td>';
+    echo '<td class="hide-on-med-and-down"><center>'.date("h:i:a d-M-Y",$row["reg_date"]).'</center></td>';
+    echo '<td><center><a target="_blank" href="'.$link.$row["id"].'"><i class="material-icons">'.$icon.'<i> </a> </center></td>';
+    echo "</tr>";
 	
 } 
 }else {

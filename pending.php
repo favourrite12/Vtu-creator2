@@ -1,10 +1,10 @@
- <?php include '../include/checklogin.php';?>
- <?php include '../../include/data_config.php';?>
- <?php include '../../include/filter.php';?>
- <?php include '../../include/webconfig.php';?>
- <?php include '../include/header.php';?>
- <?php include '../../include/pagination.php'; $page = new pagination($conn);?>
-
+<?php include '../../include/ini_set.php';?>
+<?php include '../include/checklogin.php';?>
+<?php include '../../include/data_config.php';?>
+<?php include '../../include/filter.php';?>
+<?php include '../../include/webconfig.php';?>
+<?php include '../include/header.php';?>
+<?php include '../../include/pagination.php'; $page = new pagination($conn);?>
 <?php 
 include '../include/admininfo.php';
 $adminInfo = adminInfo($loginAdmin,$conn);
@@ -31,7 +31,7 @@ $result = $conn->query($sql);
 ?>
 
 <title>
-<?php echo $LANG['api_transactions']; ?> - <?php echo $LANG['pending_transactions']; ?>
+<?php echo $LANG['pending_transactions']; ?>
 </title>
    
   <section id="content">
@@ -40,7 +40,7 @@ $result = $conn->query($sql);
           <div class="container">
             <div class="section">
               
-			  <h4><?php echo $LANG['api_transactions']; ?> - <?php echo $LANG["pending_transactions"]; ?> </h4>
+			  <h4><?php echo $LANG["pending_transactions"]; ?> </h4>
 <?php echo $LANG['the_below_table_contains_payment_history_of_pending_transactions']; ?>
 
 			  
@@ -54,13 +54,13 @@ $result = $conn->query($sql);
 <?php
  $i=1;
 $currentPage = xcape($conn, $_GET['page']);
-$totalQuery = $conn->query("SELECT id FROM api_transaction WHERE status='pending'")->num_rows;
+$totalQuery = $conn->query("SELECT id FROM recharge WHERE status='pending'")->num_rows;
 $page->searchForm($action);
 $pageData = $page->getData($currentPage,$totalQuery);
 $start = $pageData["start"];
 $stop = $pageData["stop"];
 
-$sql = "SELECT amount,id,status,service_id FROM api_transaction  WHERE status='initiated' ORDER BY reg_date DESC LIMIT $start,$stop";
+$sql = "SELECT amount,id,payment_method,status,service_id FROM recharge  WHERE status='pending' ORDER BY reg_date DESC LIMIT $start,$stop";
 $result = mysqli_query($conn, $sql);
 
 if (mysqli_num_rows($result) > 0) { ?>
@@ -77,20 +77,23 @@ if (mysqli_num_rows($result) > 0) { ?>
         <th class="hide-on-med-and-down" ><?php echo $LANG['transaction_id']; ?></th>
 	<th><?php echo $LANG["service"]; ?></th>
 	<th><?php echo $LANG["amount"]; ?></th>
-        
+        <th class="hide-on-med-and-down" colspan="2"><?php echo $LANG["payment_method"]; ?></th>
 </tr>
 <?php 
 
     while($row = mysqli_fetch_assoc($result)) {
     $sn++;
    
-   
+     $method = $LANG[strtolower($row["payment_method"])];
+      if(empty($method)){
+          $method = $LANG["none"];
+      }
     echo "<tr>";
     echo '<td class="hide-on-med-and-down" >'.$i++.'</td>';
     echo '<td class="hide-on-med-and-down">'.$row["id"].'</td>';
     echo '<td>'.$serviceValue[$row["service_id"]].'</td>';
     echo '<td>'.$row["amount"].'</td>';
-   
+    echo '<td class="hide-on-med-and-down"><center>'.$method.'</center></td>';
     echo '<td><center><a target="_blank" href="view.php?id='.$row["id"].'"><i class="material-icons">visibility<i> </a> </center></td>';
     echo "</tr>";
 	

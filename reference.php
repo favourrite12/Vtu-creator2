@@ -12,14 +12,14 @@
                       <div class="row">
 					  
 					  
-                        <form action="#" class="col s12"  onsubmit="return ajaxRequest(this,'../../processor/gateway_setting_reference.php');" >
+                        <form action="#" class="col s12"  onsubmit="return ajaxRequest(this,'../../processor/service_setting_reference.php');" >
 						 
 						  <input name="service" value="<?php echo $serviceValue['id']; ?>" type="hidden" >
 						 
 						 <div class="row">
 							
 						 
-							  <div class="input-field col s12 tooltipped"  data-position="bottom" data-tooltip="<?php echo $LANG["name_send_to_gateway"]; ?>">
+							  <div class="input-field col s12 tooltipped"  data-position="bottom" data-tooltip="<?php echo  $LANG["name_send_to_gateway"]; ?>">
 							     <input  id="refKeyName" name="refKeyName" type="text" value="<?php echo $serviceValue['ref_key_name']; ?>">
 							     <label for="name"><?php echo $LANG['key_name']; ?></label>
 							  </div>

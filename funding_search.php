@@ -1,9 +1,9 @@
- <?php include '../../include/ini_set.php';?>
  <?php include '../include/checklogin.php';?>
  <?php include '../../include/data_config.php';?>
  <?php include '../../include/filter.php';?>
  <?php include '../../include/webconfig.php';?>
  <?php include '../include/header.php';?>
+ <?php include '../../account/userinfojson.php';?>
  <?php include '../../include/pagination.php'; $page = new pagination($conn);?>
 
 <?php 
@@ -13,7 +13,7 @@ $adminInfo = adminInfo($loginAdmin,$conn);
  checkAccess($adminInfo["transaction"]);  
 ?>
 
- 
+ <?php $q = xcape($conn,$_GET["q"]);?>
 
 <?php
 $sql = "SELECT id, display_name FROM service ";
@@ -32,7 +32,7 @@ $result = $conn->query($sql);
 ?>
 
 <title>
-<?php echo $LANG['transaction_history']; ?>
+<?php echo $LANG['wallet_funding']; ?>
 </title>
    
   <section id="content">
@@ -41,12 +41,8 @@ $result = $conn->query($sql);
           <div class="container">
             <div class="section">
               
-			  <h4><?php echo $LANG["transactions"]; ?> </h4>
-<?php echo $LANG['the_below_table_contains_payment_history_of_all_transactions']; ?>
-
-			  
-			  
-			  
+			  <h4><?php echo $LANG["wallet_funding"]; ?> </h4>
+  
               <div class="divider"></div>
              
                   <!-- Form with placeholder -->
@@ -55,13 +51,13 @@ $result = $conn->query($sql);
 <?php
  $i=1;
 $currentPage = xcape($conn, $_GET['page']);
-$totalQuery = $conn->query("SELECT id FROM recharge")->num_rows;
-$page->searchForm($action);
+$totalQuery = $conn->query("SELECT id FROM payment  WHERE (id='$q' OR status ='$q' OR amount ='$q')")->num_rows;
+$page->searchForm("funding_search.php",$q);
 $pageData = $page->getData($currentPage,$totalQuery);
 $start = $pageData["start"];
 $stop = $pageData["stop"];
 
-$sql = "SELECT id,service_id,amount,status,payment_method FROM recharge LIMIT $start,$stop";
+$sql = "SELECT *  FROM payment WHERE (id='$q' OR status ='$q'  OR amount ='$q') ORDER BY reg_date DESC LIMIT $start,$stop";
 $result = mysqli_query($conn, $sql);
 
 if (mysqli_num_rows($result) > 0) { ?>
@@ -74,32 +70,36 @@ if (mysqli_num_rows($result) > 0) { ?>
 
 <table class="bordered ">
 <tr>
-    <th class="hide-on-med-and-down">#</th>
-        <th class="hide-on-med-and-down" ><?php echo $LANG['transaction_id']; ?></th>
-	<th><?php echo $LANG["service"]; ?></th>
+    <th>#</th>
+        <th ><?php echo $LANG['transaction_id']; ?></th>
 	<th><?php echo $LANG["amount"]; ?></th>
-	<th><?php echo $LANG["status"]; ?></th>
-        <th class="hide-on-med-and-down" colspan="2"><?php echo $LANG["payment_method"]; ?></th>
+	<th><?php echo $LANG["date"]; ?></th>
+        <th><?php echo $LANG["customer"]; ?></th>
+        <th><?php echo $LANG["status"]; ?></th>
+        <th><?php echo $LANG["gateway_response"]; ?></th>
 </tr>
 <?php 
 
     while($row = mysqli_fetch_assoc($result)) {
-    $sn++;
-    
-    $method = $LANG[strtolower($row["payment_method"])];
-      if(empty($method)){
-          $method = $LANG["none"];
-    }
-	
-    echo "<tr>";
-    echo '<td class="hide-on-med-and-down" >'.$i++.'</td>';
-    echo '<td class="hide-on-med-and-down">'.$row["id"].'</td>';
-    echo '<td>'.$serviceValue[$row["service_id"]].'</td>';
-    echo '<td>'.$row["amount"].'</td>';
-    echo '<td>'.$LANG[$row["status"]].'</td>';
-    echo '<td class="hide-on-med-and-down"><center>'.$method.'</center></td>';
-    echo '<td><center><a target="_blank" href="view.php?id='.$row["id"].'"><i class="material-icons">visibility<i> </a> </center></td>';
-    echo "</tr>";
+        $sn++;
+	$gatewayResponse= !empty($row["gateway_response"])?$row["gateway_response"]:$LANG["none"];
+	$date = date("d-m-Y @ g:ia ",$row["reg_date"]);
+	$u =  userInfo($row["owner"],$conn);
+        $u = json_decode($u,true);
+	$owner = $u["name"];
+	$ownerId = $u["id"];
+	$phone = $u["phone"];
+	$email = $u["email"];	
+        
+	echo '<td>'.$i++.'</td>';
+	echo '<td>'.$row["id"].'</td>';
+	echo '<td>'.$row["amount"].'</td>';
+	echo '<td>'.$date.'</td>';
+	echo '<td>'.$owner.'</td>';
+	echo '<td>'.$LANG[$row["status"]].'</td>';
+	echo '<td><center><a data-position="left" data-tooltip="'.$gatewayResponse.'" class="tooltipped"  href="javaScript:void(0)"><i class="material-icons">visibility</i></a> </center></td>';
+        echo "</tr>";
+
 	
 } 
 }else {
@@ -110,7 +110,7 @@ if (mysqli_num_rows($result) > 0) { ?>
 </table>
 </div>
 
-    <?php $page->getPage($currentPage, $totalQuery)?>
+    <?php $page->getPage($currentPage, $totalQuery,$q)?>
 
 </div>
 
@@ -120,12 +120,11 @@ if (mysqli_num_rows($result) > 0) { ?>
                   </div>
                 </div>
               </div>
-              </div>
         </section>
 
 
 
 
-
+<?php include '../include/right-nav.php';?>
 <?php include '../include/footer.php';?>
 

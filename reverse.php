@@ -16,7 +16,6 @@
 	 }
        
 ?>
-
 <?php 
 $webName = $webConfig["webName"];
 $replyTo = $webConfig["replyTo"];
@@ -41,7 +40,7 @@ $mail =  new sendMail($webConfig["licencesToken"]);
 <?php
 $id= xcape($conn,$_GET['id']);
 $res = preg_replace("/[^0-9]/", "", "$id");
-$sql = "SELECT id,amount,service_id,pay_amount,user,reg_date FROM api_transaction WHERE id ='$id'";
+$sql = "SELECT id,amount,service_id,pay_amount,user,reg_date FROM recharge WHERE id ='$id'";
 $result = mysqli_query($conn, $sql);
 if (mysqli_num_rows($result) > 0) {
     // output data of each row
@@ -66,7 +65,7 @@ $sendMail = $u["email"];
 ?>
 
 <?php
-        $lit = '<a href="//'.$webLink.'/apitransaction/view.php?id='.$id.'">
+        $lit = '<a href="//'.$webLink.'/transaction/view.php?id='.$id.'">
 		<button style="border:none;color:white;background:blue;padding:10px;border-radius:5px"><strong>'.$LANG["view"].'</strong></button>
 		</a>';	
 		$name = $u["name"];
@@ -92,18 +91,18 @@ $sendMail = $u["email"];
 	$sql = "UPDATE users SET credit='$buy' WHERE id='$owner'";
         $conn->query($sql);
 
-        $sql = "UPDATE api_transaction SET status='reversed' WHERE id='$id'";
+        $sql = "UPDATE recharge SET status='reversed' WHERE id='$id'";
         $conn->query($sql);
-	
-        $output['message'] = $LANG['transaction_reversed'];
-        $output['id'] = $id;
-        $output['status']=$LANG["success"];
-        $output['title']=$LANG["success"];
-        $output['icon'] = "success";
-        $output['close'] = false;
-        $output['new'] = true;
-        $output['button']=$LANG["continue"];
-        $output['link']="";
-        echo json_encode($output);
-          
+        
+                $output['message'] = $LANG['transaction_reversed'];
+    	        $output['id'] = $id;
+		$output['status']=$LANG["success"];
+		$output['title']=$LANG["success"];
+		$output['icon'] = "success";
+		$output['close'] = false;
+		$output['new'] = true;
+		$output['button']=$LANG["continue"];
+		$output['link']="";
+                echo json_encode($output);
+           
 ?> 
