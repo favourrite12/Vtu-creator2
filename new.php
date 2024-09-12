@@ -2,33 +2,14 @@
 		<?php include '../include/header.php';?>
 		 <?php include '../../include/data_config.php';?>
 		 <?php include '../../include/filter.php';?>
-<?php 
-include '../include/admininfo.php';
-$adminInfo = adminInfo($loginAdmin,$conn);
-//print_r($adminInfo);
-checkAccess($adminInfo["bank"]);
-?>
- 
-		<?php 
-		$id = xcape($conn, $_GET['id']);
-		
-		  $sql = "SELECT * FROM bank WHERE id='$id'";
-		  $result = $conn->query($sql);
-			if ($result->num_rows > 0) {
-			   // output data of each row
-				while($row = $result->fetch_assoc()) {
-				   $bankName =   $row["bank_name"];
-				   $id =   $row["id"];
-				   $accountNumber = $row["account_number"];
-				   $accountType = $row["account_type"];
-				   $accountName = $row["account_name"];
-		
-				}
-			}
-?>
-		
-		
-		 
+		 <?php 
+		include '../include/admininfo.php';
+		$adminInfo = adminInfo($loginAdmin,$conn);
+		//print_r($adminInfo);
+		 checkAccess($adminInfo["bank"]);
+			 
+		?>
+	 <title><?php echo $LANG["add_new_bank_account"]?></title>	 
 <?php
 				
 	if ($_SERVER["REQUEST_METHOD"] == "POST") {
@@ -37,15 +18,15 @@ checkAccess($adminInfo["bank"]);
 	$accountName = xcape($conn, $_POST['accountName']);
 	$accountNumber = xcape($conn, $_POST['accountNumber']);
 	$accountType = xcape($conn, $_POST['accountType']);
-	$id = xcape($conn, $_POST['id']);
-      if(empty($bankName)){
+	$id= md5(time()+mt_rand());
+     if(empty($bankName)){
 		 $bankNameError= '<div class="alert alert-danger alert-dismissible">
 						  <button type="button" class="close" data-dismiss="alert">&times;</button>
 						  <strong>'.$LANG["bank_name_is_empty"].'</strong>
 						</div>';
 						$prc = 0;
 	 }  if(empty($accountName)){
-		 $errorMessage = '<div class="alert alert-danger alert-dismissible">
+		 $accountNameError = '<div class="alert alert-danger alert-dismissible">
 						  <button type="button" class="close" data-dismiss="alert">&times;</button>
 						  <strong>'.$LANG["account_name_is_empty"].'</strong>
 						</div>';
@@ -63,18 +44,31 @@ checkAccess($adminInfo["bank"]);
 						</div>';
 						$prc = 0;
 	 }
+	$regDate = time(); 
+
 
 	
 	 if($prc ==1){
-$sql = "UPDATE bank SET
-     	bank_name = '$bankName', 
-		account_name = '$accountName', 
-		account_number = '$accountNumber',
-		account_type = '$accountType'
-	    WHERE id = '$id'";
+$sql = "INSERT INTO bank (
+		id,
+		bank_name, 
+		account_name, 
+		account_number, 
+		account_type, 
+		reg_date
+		)
+VALUES (
+		'$id',
+		'$bankName', 
+		'$accountName',
+		'$accountNumber',
+		'$accountType',
+		'$regDate'
+		)";
   
 	 if ($conn->query($sql) === TRUE) {
-		  alertSuccess($LANG["changes_saved_successfully"]);
+		 $id=$bankName= $accountName=$accountNumber=$accountType=$regDate="";
+		 alertSuccess($LANG["new_bank_account_added"]);
 	 } else {
 	 alertDanger($conn->error);
 	}
@@ -85,34 +79,37 @@ $sql = "UPDATE bank SET
 	?>
 		
 		 
-<title><?php echo $LANG['edit_bank_account']; ?></title>
+
 		
  
 
 		 
 <section class="container">
- 
+	
   <section id="content">
-      
         
-		   <p class="caption"><?php echo $LANG['edit_bank_account']; ?></p>
+        
+ 
+            <div class="section container">
+              <p class="caption"><?php echo $LANG['create_new_admin']; ?></p>
               <div class="divider"></div>
-			  
-            <div class="section flexbox">
-             
              
                   <!-- Form with placeholder -->
-                  <div class="col s12 m12 l6 custom-form-control">
-                    <div class="card-panel hoverable">			   
+                  <div class="col s12 m12 l6">
+                    <div class="card-panel hoverable">
+				   
+	<div class="row flex-items-sm-center justify-content-center overflow-hidden">
 
-		    <form class="row py-2" method ="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" >
+		    <form class="row col s12 py-2" method ="post" action="<?php echo htmlspecialchars($_SERVER["PHP_SELF"]);?>" >
 						<div id="output" class="col s12"><?php echo $errorMessage;?></div>	
+					
 						
-						
-						
-				<input type="hidden" value='<?php echo $id;?>' class="form-control form-control-sm" name="id" id="id"  required>
-						   
-						<div class="input-field col s12">
+						<div class="col s12 form-group">
+							<h6><?php echo $LANG["add_new_account_details"];?><small> <i class="text-danger"><?php echo $LANG["all_input_are_required"]?></i></small></h6>
+							<hr color="#fff"/>
+							</div>
+							
+						<div class="col s12 form-group">
 							<label for="" class="form-control-label"><?php echo $LANG["bank_name"];?></label>
 							<input type="text" value='<?php echo $bankName;?>' class="form-control form-control-sm" name="bankName" id="bankName"  required>
 						   
@@ -120,56 +117,54 @@ $sql = "UPDATE bank SET
 						
 						</div>
 			
-						<div class="input-field col s12">
+						<div class="col s12 form-group">
 							<label for="" class="form-control-label"><?php echo $LANG["account_name"];?></label>
 					  		<input type="text"   value='<?php echo $accountName;?>' class="form-control form-control-sm" name="accountName" id="accountName" required >
 							 <?php echo $accountNameError;?>
 						</div>
 						
-						<div class="input-field col s12">
+						<div class="col s12 form-group">
 							<label for="" class="form-control-label"><?php echo $LANG["account_number"];?></label>
 					  		<input type="text" value='<?php echo $accountNumber;?>'  class="form-control form-control-sm" name="accountNumber" id="accountNumber"  required>
 							 <?php echo $accountNumberError;?>
 						</div>
 						
-						<div class="input-field col s12">
+						<div class="col s12 form-group">
 							<label for="" class="form-control-label"><?php echo $LANG["account_type"];?></label>
-					  		<input type="text" placeholder="Eg Saving" value='<?php echo $accountType;?>'  class="form-control form-control-sm" name="accountType" id="accountType"  required>
+					  		<input type="text" placeholder="Example: Savings Account" value='<?php echo $accountType;?>'  class="form-control form-control-sm" name="accountType" id="accountType"  required>
 							 <?php echo $accountTypeError;?>
 						</div>
 						
 		
 			
 			  
-			
-	<div class="input-field col s12">
-	<input  type="submit" class="btn btn-primary right" value="Edit Bank Account"  /> 
-    </div>
-			
+							
+					<div class="col s12 form-group">
+					<input  type="submit" class="btn right" value="<?php echo $LANG["add_bank_account"];?>"  /> 
+					</div>
+							
 				
 				
 		</form>
 
 
 </div>
-</div>
-</div>
 </section>
-</div>
-</div>
 
 
- <div class="fixed-action-btn">
-    <a class="btn-floating btn-large">
-      <i class="large material-icons">more_vert</i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+        </section>
+
+
+
+ <div class="fixed-action-btn tooltipped" data-position="left" data-tooltip="<?php echo ucfirst($LANG["home"]) ?>">
+    <a href="index.php" class="btn-floating btn-large">
+      <i class="large material-icons">home</i>
     </a>
-    <ul>
-      <li><a href="new.php" data-position="left" data-tooltip="<?php echo ucfirst($LANG["add_new_bank_account"]) ?>" class="btn-floating tooltipped"><i class="material-icons">add</i></a></li>
-      <li><a href="index.php" data-position="left" data-tooltip="<?php echo ucfirst($LANG["home"]) ?>" class="btn-floating  tooltipped"><i class="material-icons">home</i></a></li>
-    </ul>
   </div>
-  <?php include '../include/right-nav.php';?>
+
+<?php include '../include/right-nav.php';?>
 <?php include '../include/footer.php';?>
-		
-		
-		
